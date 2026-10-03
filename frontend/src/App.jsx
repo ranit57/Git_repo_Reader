@@ -17,7 +17,7 @@ function App() {
       <main
         style={{
           display: "grid",
-          gridTemplateColumns: "320px minmax(0, 1fr) 320px",
+          gridTemplateColumns: "320px minmax(0, 1fr)",
           gap: "1rem",
           padding: "1.5rem 2rem",
         }}
@@ -29,13 +29,6 @@ function App() {
         <section style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
           <ChatPanel repoId={activeRepoId} />
         </section>
-
-        <aside style={{ background: "#ffffff", border: "1px solid #e5e7eb", borderRadius: "1rem", padding: "1.25rem" }}>
-          <h2 style={{ marginTop: 0, fontSize: "1.1rem" }}>Sources</h2>
-          <p style={{ color: "#6b7280", lineHeight: 1.7 }}>
-            Source snippets and answer details will appear here once you ask a question.
-          </p>
-        </aside>
       </main>
     </div>
   );

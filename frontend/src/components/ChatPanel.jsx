@@ -21,7 +21,11 @@ function ChatPanel({ repoId }) {
   const endRef = useRef(null);
 
   useEffect(() => {
-    endRef.current?.scrollIntoView({ behavior: "smooth" });
+    // Scroll to top to show the latest message
+    const container = endRef.current?.parentElement;
+    if (container) {
+      container.scrollTop = 0;
+    }
   }, [messages]);
 
   const handleSend = async () => {
@@ -30,35 +34,35 @@ function ChatPanel({ repoId }) {
 
     if (!repoId) {
       setMessages((current) => [
-        ...current,
         {
           role: "assistant",
           text: "Ingest a repository before asking a question.",
         },
+        ...current,
       ]);
       return;
     }
 
-    setMessages((current) => [...current, { role: "user", text: trimmed }]);
+    setMessages((current) => [{ role: "user", text: trimmed }, ...current]);
     setDraft("");
     setIsSending(true);
 
     try {
       const data = await queryRepo(repoId, trimmed);
       setMessages((current) => [
-        ...current,
         {
           role: "assistant",
           text: data.answer ?? "No answer returned from the backend.",
         },
+        ...current,
       ]);
     } catch (error) {
       setMessages((current) => [
-        ...current,
         {
           role: "assistant",
           text: `Query failed: ${error.message}`,
         },
+        ...current,
       ]);
     } finally {
       setIsSending(false);
@@ -113,6 +117,53 @@ function ChatPanel({ repoId }) {
         </span>
       </div>
 
+      {/* Chat input at the top */}
+      <div style={{ marginBottom: "1rem", display: "flex", gap: "0.75rem", alignItems: "flex-end" }}>
+        <textarea
+          value={draft}
+          onChange={(event) => setDraft(event.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="Ask a question about the repository..."
+          rows={3}
+          style={{
+            flex: 1,
+            padding: "0.9rem 1rem",
+            borderRadius: "0.75rem",
+            border: "1px solid #cbd5e1",
+            resize: "vertical",
+            fontSize: "0.95rem",
+            lineHeight: 1.5,
+            outline: "none",
+            background: "#ffffff",
+            color: "#0f172a",
+          }}
+        />
+        <button
+          type="button"
+          onClick={handleSend}
+          disabled={isSending || !repoId}
+          style={{
+            padding: "0.9rem 1.2rem",
+            borderRadius: "0.75rem",
+            border: "none",
+            background: isSending || !repoId ? "#94a3b8" : "#2563eb",
+            color: "white",
+            cursor: isSending || !repoId ? "not-allowed" : "pointer",
+            fontWeight: 700,
+            minWidth: "120px",
+            boxShadow: isSending || !repoId ? "none" : "0 10px 22px rgba(37, 99, 235, 0.22)",
+          }}
+        >
+          Send
+        </button>
+      </div>
+
+      {isSending ? (
+        <div style={{ marginBottom: "1rem", color: "#64748b", fontSize: "0.88rem" }}>
+          Reading retrieved context and shaping the answer...
+        </div>
+      ) : null}
+
       <div style={{ marginBottom: "1rem", padding: "0.85rem", background: "#ffffff", borderRadius: "0.75rem", border: "1px solid #e2e8f0" }}>
         <div style={{ marginBottom: "0.65rem", fontWeight: 700, color: "#0f172a", fontSize: "0.9rem" }}>Try one of these questions</div>
         <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
@@ -152,52 +203,6 @@ function ChatPanel({ repoId }) {
           <AnswerCard key={index} role={message.role} text={message.text} />
         ))}
         <div ref={endRef} />
-      </div>
-
-      {isSending ? (
-        <div style={{ marginTop: "0.75rem", color: "#64748b", fontSize: "0.88rem" }}>
-          Reading retrieved context and shaping the answer...
-        </div>
-      ) : null}
-
-      <div style={{ marginTop: "1rem", display: "flex", gap: "0.75rem", alignItems: "flex-end" }}>
-        <textarea
-          value={draft}
-          onChange={(event) => setDraft(event.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="Ask a question about the repository..."
-          rows={3}
-          style={{
-            flex: 1,
-            padding: "0.9rem 1rem",
-            borderRadius: "0.75rem",
-            border: "1px solid #cbd5e1",
-            resize: "vertical",
-            fontSize: "0.95rem",
-            lineHeight: 1.5,
-            outline: "none",
-            background: "#ffffff",
-            color: "#0f172a",
-          }}
-        />
-        <button
-          type="button"
-          onClick={handleSend}
-          disabled={isSending || !repoId}
-          style={{
-            padding: "0.9rem 1.2rem",
-            borderRadius: "0.75rem",
-            border: "none",
-            background: isSending || !repoId ? "#94a3b8" : "#2563eb",
-            color: "white",
-            cursor: isSending || !repoId ? "not-allowed" : "pointer",
-            fontWeight: 700,
-            minWidth: "120px",
-            boxShadow: isSending || !repoId ? "none" : "0 10px 22px rgba(37, 99, 235, 0.22)",
-          }}
-        >
-          Send
-        </button>
       </div>
     </div>
   );
